@@ -1,0 +1,14 @@
+# Fichiers générés par Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Base de données SQLite
+db.sqlite3
+
+# Fichiers de migration
+*/migrations/
+
+# Environnements virtuels
+venv/
