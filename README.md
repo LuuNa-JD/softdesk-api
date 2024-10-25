@@ -3,6 +3,13 @@
 
 SoftDesk est une API RESTful pour la gestion de projets, d'issues, et de commentaires.
 
+## Prérequis
+
+- Python 3.10+
+- Django 4.x
+- Django REST Framework
+- Poetry (pour la gestion des dépendances)
+
 ## Installation
 
 ### 1. Cloner ce dépôt
@@ -10,34 +17,16 @@ SoftDesk est une API RESTful pour la gestion de projets, d'issues, et de comment
 Clonez ce dépôt en local en utilisant la commande suivante :
 
 ```bash
-git clone <URL_DU_DEPOT>
+git clone https://github.com/LuuNa-JD/softdesk-api.git
 cd softdesk_api
 ```
 
-### 2. Créer et activer un environnement virtuel
-
-Créez un environnement virtuel pour isoler les dépendances du projet.
-
-- Sur MacOS/Linux :
-
-  ```bash
-  python3 -m venv venv
-  source venv/bin/activate
-  ```
-
-- Sur Windows :
-
-  ```bash
-  python -m venv venv
-  venv\Scripts\activate
-  ```
-
 ### 3. Installer les dépendances
 
-Avec l'environnement virtuel activé, installez les dépendances nécessaires :
+Installez les dépendances nécessaires avec Poetry :
 
 ```bash
-pip install -r requirements.txt
+poetry install
 ```
 
 ### 4. Appliquer les migrations de base de données
@@ -45,7 +34,7 @@ pip install -r requirements.txt
 Exécutez les migrations pour préparer la base de données :
 
 ```bash
-python manage.py migrate
+poetry run python manage.py migrate
 ```
 
 ## Lancement
@@ -53,7 +42,7 @@ python manage.py migrate
 Pour démarrer l'API en local, exécutez la commande suivante :
 
 ```bash
-python manage.py runserver
+poetry run python manage.py runserver
 ```
 
 ## Fonctionnalités
