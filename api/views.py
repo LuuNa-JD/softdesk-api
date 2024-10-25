@@ -24,7 +24,7 @@ class ProjectListView(generics.ListAPIView):
 
 
 class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Project.objects.all()
+    queryset = Project.objects.all().order_by('-created_time')
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated, IsContributor, IsCreator]
 
@@ -54,7 +54,7 @@ class IssueListView(generics.ListAPIView):
 
     def get_queryset(self):
         project = Project.objects.get(pk=self.kwargs['project_id'])
-        return Issue.objects.filter(project=project)
+        return Issue.objects.filter(project=project).order_by('-created_time')
 
 
 class IssueDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -82,7 +82,7 @@ class CommentListView(generics.ListAPIView):
 
     def get_queryset(self):
         issue = Issue.objects.get(pk=self.kwargs['issue_id'])
-        return Comment.objects.filter(issue=issue)
+        return Comment.objects.filter(issue=issue).order_by('-created_time')
 
 
 class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
