@@ -14,10 +14,16 @@ from rest_framework.pagination import PageNumberPagination
 logger = logging.getLogger(__name__)
 
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    pagination_class = PageNumberPagination  # Pagination pour les listes d'utilisateurs
+    pagination_class = StandardResultsSetPagination
     permission_classes = [permissions.IsAuthenticated]
 
 
@@ -33,35 +39,35 @@ class UserProfileUpdateView(generics.UpdateAPIView):
     def get_object(self):
         return self.request.user
 
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        response.data['message'] = "Profil mis à jour avec succès."
+        return response
+
 
 class UserDeleteView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request, *args, **kwargs):
         user = request.user
-        logger.info(f"Utilisateur authentifié : {user}")
+        logger.info(f"Suppression de l'utilisateur : {user}")
 
         if user.is_authenticated:
-            # Supprimer les projets créés par l'utilisateur
+            # Suppression en cascade de toutes les ressources associées
             Project.objects.filter(owner=user).delete()
-
-            # Supprimer toutes les contributions de l'utilisateur
             Contributor.objects.filter(user=user).delete()
-
-            # Supprimer les issues créées par l'utilisateur
             Issue.objects.filter(creator__user=user).delete()
-
-            # Supprimer les commentaires créés par l'utilisateur
             Comment.objects.filter(creator__user=user).delete()
-
-            # Supprimer l'utilisateur lui-même
             user.delete()
 
             logger.info("Compte et données associées supprimés avec succès.")
-            return Response({"message": "Compte et données associées supprimés avec succès."}, status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {"message": "Compte et données associées supprimés avec succès."},
+                status=status.HTTP_204_NO_CONTENT
+            )
         else:
             logger.warning("Utilisateur non trouvé ou non authentifié.")
-            return Response({"detail": "User not found", "code": "user_not_found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "Utilisateur non trouvé", "code": "user_not_found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class AddContributorView(generics.CreateAPIView):
@@ -86,7 +92,7 @@ class AddContributorView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data, context={'project': project})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({"message": "Contributeur ajouté avec succès.", "data": serializer.data}, status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
@@ -95,7 +101,7 @@ def register_user(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({"message": "Inscription réussie !", "data": serializer.data}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

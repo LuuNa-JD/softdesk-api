@@ -1,0 +1,7 @@
+[flake8]
+ignore = E501, W503, F401, F403
+exclude = .git, __pycache__, migrations, static, media, env, venv
+max-line-length = 88
+import-order-style = google
+application-import-names = users, api
+max-complexity = 10

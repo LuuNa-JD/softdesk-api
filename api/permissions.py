@@ -1,46 +1,40 @@
+import logging
 from rest_framework import permissions
-from api.models import Project  # Replace 'your_app' with the actual app name where Project is defined
-
-
-class IsProjectContributorOrReadOnly(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return obj.contributors.filter(id=request.user.id).exists() or obj.author_user == request.user
-
-
-class IsAuthorOrReadOnly(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return obj.author_user == request.user
+from api.models import Project
 
 
 class IsContributor(permissions.BasePermission):
     """
-    Permission permettant seulement aux contributeurs d'accéder à un projet et à ses composants.
+    Permission permettant seulement aux contributeurs ou au propriétaire d'accéder à un projet et à ses composants.
     """
 
     def has_object_permission(self, request, view, obj):
-        # Vérifie si l'objet est un projet et si l'utilisateur est le propriétaire ou un contributeur
         if isinstance(obj, Project):
-            return obj.owner == request.user or obj.contributors.filter(user=request.user).exists()
-
-        # Vérifie si l'objet est une issue ou un commentaire et si l'utilisateur est contributeur du projet parent
+            is_owner = obj.owner == request.user
+            is_contributor = obj.contributors.filter(user=request.user).exists()
+            return is_owner or is_contributor
         if hasattr(obj, 'project'):
-            return obj.project.owner == request.user or obj.project.contributors.filter(user=request.user).exists()
-
+            is_owner = obj.project.owner == request.user
+            is_contributor = obj.project.contributors.filter(user=request.user).exists()
+            return is_owner or is_contributor
         return False
 
 class IsCreator(permissions.BasePermission):
     """
-    Permission permettant seulement au créateur d'une ressource de la modifier ou de la supprimer.
+    Permission permettant seulement au créateur ou au propriétaire d'une ressource de la modifier ou de la supprimer.
     """
 
     def has_object_permission(self, request, view, obj):
-        # Lecture seule autorisée pour les contributeurs (si `IsContributor` est appliqué)
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        # Autorisation de modification/suppression seulement pour le créateur
-        return obj.creator == request.user.contributions.get(project=obj.project)
+        if isinstance(obj, Project):
+            is_owner = obj.owner == request.user
+            return is_owner
+
+        # Ajout de logs pour vérifier la correspondance du créateur
+        if hasattr(obj, 'creator'):
+            is_creator = obj.creator == request.user or (hasattr(obj.creator, 'user') and obj.creator.user == request.user)
+            return is_creator
+
+        return False
