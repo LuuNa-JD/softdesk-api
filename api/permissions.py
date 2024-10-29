@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from rest_framework.permissions import BasePermission
+from api.models import Project  # Replace 'your_app' with the actual app name where Project is defined
 
 
 class IsProjectContributorOrReadOnly(permissions.BasePermission):
@@ -22,13 +22,13 @@ class IsContributor(permissions.BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
-        # Vérifie si l'objet est un projet et si l'utilisateur est un contributeur
-        if hasattr(obj, 'contributors'):
-            return obj.contributors.filter(user=request.user).exists()
+        # Vérifie si l'objet est un projet et si l'utilisateur est le propriétaire ou un contributeur
+        if isinstance(obj, Project):
+            return obj.owner == request.user or obj.contributors.filter(user=request.user).exists()
 
         # Vérifie si l'objet est une issue ou un commentaire et si l'utilisateur est contributeur du projet parent
         if hasattr(obj, 'project'):
-            return obj.project.contributors.filter(user=request.user).exists()
+            return obj.project.owner == request.user or obj.project.contributors.filter(user=request.user).exists()
 
         return False
 
