@@ -49,7 +49,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['email', 'age']
 
     def __str__(self):
-        return self.email
+        return self.username
 
 
 class Contributor(models.Model):
