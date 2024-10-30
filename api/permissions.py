@@ -16,8 +16,10 @@ class IsContributor(permissions.BasePermission):
         else:
             return False
 
-        # Vérifie si l'utilisateur est un contributeur du projet
-        return Contributor.objects.filter(project=project, contributor=request.user).exists() or project.creator == request.user
+        is_contributor = Contributor.objects.filter(project=project, contributor=request.user).exists()
+        is_creator = project.creator == request.user
+
+        return is_contributor or is_creator
 
 
 class IsCreator(permissions.BasePermission):

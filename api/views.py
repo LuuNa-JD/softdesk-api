@@ -5,6 +5,7 @@ from .serializers import ProjectSerializer, IssueSerializer, CommentSerializer
 from .permissions import IsContributor, IsCreator
 from .models import Comment
 from django.db import models
+from rest_framework.exceptions import PermissionDenied
 
 
 class ProjectCreateView(generics.CreateAPIView):
@@ -68,7 +69,11 @@ class IssueCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsContributor]
 
     def get_project(self):
-        return Project.objects.get(pk=self.kwargs['project_id'])
+        project = Project.objects.get(pk=self.kwargs['project_id'])
+        # Vérifie si l'utilisateur est un contributeur du projet ou le créateur
+        if not Contributor.objects.filter(project=project, contributor=self.request.user).exists() and project.creator != self.request.user:
+            raise PermissionDenied("Vous n'êtes pas contributeur de ce projet.")
+        return project
 
     def perform_create(self, serializer):
         project = self.get_project()
@@ -125,11 +130,17 @@ class CommentCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsContributor]
 
     def get_issue(self):
-        return Issue.objects.get(pk=self.kwargs['issue_id'])
+        issue = Issue.objects.get(pk=self.kwargs['issue_id'])
+        project = issue.project
+        # Vérifie si l'utilisateur est contributeur ou créateur du projet
+        if not Contributor.objects.filter(project=project, contributor=self.request.user).exists() and project.creator != self.request.user:
+            raise PermissionDenied("Vous n'êtes pas contributeur de ce projet.")
+        return issue
 
     def perform_create(self, serializer):
-        issue_id = self.kwargs.get('issue_id')
-        issue = Issue.objects.get(id=issue_id)
+        issue = Issue.objects.get(pk=self.kwargs['issue_id'])
+        # Forcer l'évaluation de la permission
+        self.check_object_permissions(self.request, issue)
         serializer.save(creator=self.request.user, issue=issue)
 
     def create(self, request, *args, **kwargs):

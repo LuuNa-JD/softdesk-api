@@ -53,8 +53,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Contributor(models.Model):
-    contributor = models.ForeignKey(User, on_delete=models.CASCADE)
-    project = models.ForeignKey('api.Project', on_delete=models.CASCADE)
+    contributor = models.ForeignKey(User, related_name="contributions", on_delete=models.CASCADE)
+    project = models.ForeignKey('api.Project', related_name="contributor_set", on_delete=models.CASCADE)
 
     def __str__(self):
         return self.contributor.username
