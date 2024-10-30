@@ -231,11 +231,35 @@
 ```json
 [
   {
-    "id": 1,
-    "title": "Issue 1",
-    "description": "Description de l'issue",
-    "creator": "creator_username",
-    "created_time": "29 October 2024, 11:26"
+    "count": 2,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 3,
+            "title": "Issue modifiée par User1",
+            "description": "Nouvelle description de l'issue par User1",
+            "project": 1,
+            "creator_name": "Harry",
+            "priority": "HIGH",
+            "tag": "FEATURE",
+            "status": "Finished",
+            "created_time": "30 October 2024, 16:38",
+            "assignee_username": "Jeanne"
+        },
+        {
+            "id": 2,
+            "title": "Issue créée par User1",
+            "description": "Description de l'issue par User1",
+            "project": 1,
+            "creator_name": "Harry",
+            "priority": "MEDIUM",
+            "tag": "FEATURE",
+            "status": "In Progress",
+            "created_time": "30 October 2024, 16:38"
+        }
+    ],
+    "message": "Liste des issues récupérée avec succès."
   }
 ]
 ```
@@ -250,18 +274,24 @@
 - `description` : Description de l'issue.
 - `priority` : Priorité de l'issue (LOW, MEDIUM, HIGH).
 - `tag` : Type de l'issue (BUG, FEATURE, TASK).
+- `status` : Statut de l'issue.
+- `assignee` : Nom d'utilisateur de l'assigné.
 
 #### Exemple de réponse :
 ```json
 {
-  "id": 2,
-  "title": "Nouvelle Issue",
-  "description": "Description de la nouvelle issue",
-  "priority": "HIGH",
-  "tag": "BUG",
-  "creator": "creator_username",
-  "created_time": "29 October 2024, 11:26"
-}
+    "id": 3,
+    "title": "Issue modifiée par User1",
+    "description": "Nouvelle description de l'issue par User1",
+    "project": 1,
+    "creator_name": "Harry",
+    "priority": "HIGH",
+    "tag": "FEATURE",
+    "status": "Finished",
+    "created_time": "30 October 2024, 16:38",
+    "assignee_username": "Jeanne",
+    "message": "Détails de l'issue récupérés avec succès."
+  }
 ```
 
 ### Détails d’une issue

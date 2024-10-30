@@ -6,6 +6,7 @@ from .permissions import IsContributor, IsCreator
 from .models import Comment
 from django.db import models
 from rest_framework.exceptions import PermissionDenied
+from django.db.models import Q
 
 
 class ProjectCreateView(generics.CreateAPIView):
@@ -28,8 +29,8 @@ class ProjectListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Project.objects.filter(
-            models.Q(creator=self.request.user)
-            | models.Q(contributors__contributor=self.request.user)
+            Q(creator=self.request.user)
+            | Q(contributor_set__contributor=self.request.user)
         ).distinct().order_by('-created_time')
 
     def list(self, request, *args, **kwargs):
