@@ -1,13 +1,10 @@
-from venv import logger
 from rest_framework import generics, permissions
 from .models import Project, Issue
 from users.models import Contributor
 from .serializers import ProjectSerializer, IssueSerializer, CommentSerializer
 from .permissions import IsContributor, IsCreator
-from rest_framework.exceptions import ValidationError
 from .models import Comment
 from django.db import models
-from rest_framework.exceptions import PermissionDenied
 
 
 class ProjectCreateView(generics.CreateAPIView):
@@ -15,13 +12,14 @@ class ProjectCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        project = serializer.save(owner=self.request.user)
-        Contributor.objects.create(user=self.request.user, project=project)
+        project = serializer.save(creator=self.request.user)
+        Contributor.objects.create(contributor=self.request.user, project=project)
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         response.data['message'] = "Projet créé avec succès ! Vous êtes ajouté comme propriétaire et contributeur."
         return response
+
 
 class ProjectListView(generics.ListAPIView):
     serializer_class = ProjectSerializer
@@ -29,8 +27,8 @@ class ProjectListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Project.objects.filter(
-            models.Q(owner=self.request.user) |
-            models.Q(contributors__user=self.request.user)
+            models.Q(creator=self.request.user)
+            | models.Q(contributors__contributor=self.request.user)
         ).distinct().order_by('-created_time')
 
     def list(self, request, *args, **kwargs):
@@ -40,11 +38,15 @@ class ProjectListView(generics.ListAPIView):
         return response
 
 
-
 class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Project.objects.all().prefetch_related('contributors')
     serializer_class = ProjectSerializer
-    permission_classes = [permissions.IsAuthenticated, IsContributor, IsCreator]
+    permission_classes = [permissions.IsAuthenticated, IsContributor]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated(), IsContributor()]
+        return [permissions.IsAuthenticated(), IsCreator()]
 
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
@@ -60,6 +62,7 @@ class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
         response = super().destroy(request, *args, **kwargs)
         return response
 
+
 class IssueCreateView(generics.CreateAPIView):
     serializer_class = IssueSerializer
     permission_classes = [permissions.IsAuthenticated, IsContributor]
@@ -69,12 +72,7 @@ class IssueCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         project = self.get_project()
-        try:
-            contributor = Contributor.objects.get(user=self.request.user, project=project)
-        except Contributor.DoesNotExist:
-            raise ValidationError("L'utilisateur n'est pas contributeur de ce projet.")
-
-        serializer.save(project=project, creator=contributor)
+        serializer.save(project=project, creator=self.request.user)
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
@@ -99,7 +97,12 @@ class IssueListView(generics.ListAPIView):
 class IssueDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Issue.objects.all()
     serializer_class = IssueSerializer
-    permission_classes = [permissions.IsAuthenticated, IsContributor, IsCreator]
+    permission_classes = [permissions.IsAuthenticated, IsContributor]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated(), IsContributor()]
+        return [permissions.IsAuthenticated(), IsCreator()]
 
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
@@ -117,6 +120,7 @@ class IssueDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CommentCreateView(generics.CreateAPIView):
+    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated, IsContributor]
 
@@ -124,15 +128,9 @@ class CommentCreateView(generics.CreateAPIView):
         return Issue.objects.get(pk=self.kwargs['issue_id'])
 
     def perform_create(self, serializer):
-        issue = self.get_issue()
-
-        # Vérifie que l'utilisateur est bien un contributeur du projet avant de récupérer la contribution
-        try:
-            contributor = Contributor.objects.get(user=self.request.user, project=issue.project)
-        except Contributor.DoesNotExist:
-            raise PermissionDenied("Vous devez être contributeur de ce projet pour ajouter un commentaire.")
-
-        serializer.save(issue=issue, creator=contributor)
+        issue_id = self.kwargs.get('issue_id')
+        issue = Issue.objects.get(id=issue_id)
+        serializer.save(creator=self.request.user, issue=issue)
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
@@ -157,7 +155,12 @@ class CommentListView(generics.ListAPIView):
 class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticated, IsContributor, IsCreator]
+    permission_classes = [permissions.IsAuthenticated, IsContributor]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated(), IsContributor()]
+        return [permissions.IsAuthenticated(), IsCreator()]
 
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)

@@ -20,7 +20,8 @@ class Project(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     type = models.CharField(max_length=50, choices=PROJECT_TYPES)
-    owner = models.ForeignKey(User, related_name="projects", on_delete=models.CASCADE)
+    creator = models.ForeignKey(User, related_name="projects_created", on_delete=models.CASCADE)
+    contributors = models.ManyToManyField(Contributor, related_name="projects_contributed", blank=True)
     created_time = models.DateTimeField(auto_now_add=True)  # Horodatage
 
     def __str__(self):
@@ -58,10 +59,11 @@ class Issue(models.Model):
         (STATUS_FINISHED, 'Finished'),
     ]
 
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=100)
     description = models.TextField()
     project = models.ForeignKey(Project, related_name="issues", on_delete=models.CASCADE)
-    creator = models.ForeignKey(Contributor, related_name="created_issues", on_delete=models.CASCADE)
+    creator = models.ForeignKey(User, related_name="created_issues", on_delete=models.CASCADE)
+    assignee = models.ForeignKey(User, related_name="assigned_issues", on_delete=models.CASCADE, null=True, )
     priority = models.CharField(max_length=6, choices=PRIORITIES, default=PRIORITY_LOW)
     tag = models.CharField(max_length=7, choices=TAGS, default=TAG_TASK)
     status = models.CharField(max_length=12, choices=STATUSES, default=STATUS_TODO)
@@ -75,7 +77,7 @@ class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # UUID unique
     content = models.TextField()
     issue = models.ForeignKey(Issue, related_name="comments", on_delete=models.CASCADE)
-    creator = models.ForeignKey(Contributor, related_name="comments", on_delete=models.CASCADE)
+    creator = models.ForeignKey(User, related_name="created_comments", on_delete=models.CASCADE)
     created_time = models.DateTimeField(auto_now_add=True)  # Horodatage
 
     def __str__(self):

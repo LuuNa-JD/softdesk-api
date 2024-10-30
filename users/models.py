@@ -53,9 +53,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Contributor(models.Model):
-    user = models.ForeignKey(User, related_name="contributions", on_delete=models.CASCADE)
-    project = models.ForeignKey('api.Project', related_name="contributors", on_delete=models.CASCADE)
-    role = models.CharField(max_length=100, default="Contributor")
+    contributor = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey('api.Project', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.user.username} - {self.project.title}"
+        return self.contributor.username

@@ -1,8 +1,8 @@
 from rest_framework import viewsets, permissions, generics, status
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import CustomTokenObtainPairSerializer, UserUpdateSerializer, UserSerializer, AddContributorSerializer
+from .serializers import CustomTokenObtainPairSerializer, UserUpdateSerializer, UserSerializer, ContributorSerializer
 from .models import User
-from api.permissions import IsContributor
+from api.permissions import IsCreator
 from api.models import Project, Contributor, Issue, Comment
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -50,29 +50,22 @@ class UserDeleteView(APIView):
 
     def delete(self, request, *args, **kwargs):
         user = request.user
-        logger.info(f"Suppression de l'utilisateur : {user}")
 
         if user.is_authenticated:
             # Suppression en cascade de toutes les ressources associées
-            Project.objects.filter(owner=user).delete()
-            Contributor.objects.filter(user=user).delete()
-            Issue.objects.filter(creator__user=user).delete()
-            Comment.objects.filter(creator__user=user).delete()
+            Project.objects.filter(creator=user).delete()
+            Contributor.objects.filter(contributor=user).delete()
+            Issue.objects.filter(creator=user).delete()
+            Comment.objects.filter(creator=user).delete()
             user.delete()
-
-            logger.info("Compte et données associées supprimés avec succès.")
-            return Response(
-                {"message": "Compte et données associées supprimés avec succès."},
-                status=status.HTTP_204_NO_CONTENT
-            )
+            return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            logger.warning("Utilisateur non trouvé ou non authentifié.")
             return Response({"detail": "Utilisateur non trouvé", "code": "user_not_found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class AddContributorView(generics.CreateAPIView):
-    serializer_class = AddContributorSerializer
-    permission_classes = [permissions.IsAuthenticated, IsContributor]
+    serializer_class = ContributorSerializer
+    permission_classes = [permissions.IsAuthenticated, IsCreator]
 
     def get_project(self):
         return Project.objects.get(pk=self.kwargs['project_id'])
@@ -86,12 +79,12 @@ class AddContributorView(generics.CreateAPIView):
         if project is None:
             return Response({"detail": "Projet non trouvé."}, status=status.HTTP_404_NOT_FOUND)
 
-        if project.owner != request.user:
-            return Response({"detail": "Seul le propriétaire peut ajouter des contributeurs."}, status=status.HTTP_403_FORBIDDEN)
+        if project.creator != request.user:
+            return Response({"detail": "Seul le créateur peut ajouter des contributeurs."}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = self.get_serializer(data=request.data, context={'project': project})
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        self.perform_create(serializer)
         return Response({"message": "Contributeur ajouté avec succès.", "data": serializer.data}, status=status.HTTP_201_CREATED)
 
 

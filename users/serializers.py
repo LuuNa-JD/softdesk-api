@@ -30,6 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+
 class UserUpdateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)  # Mot de passe optionnel
     username = serializers.CharField(required=False)  # Nom d'utilisateur optionnel
@@ -48,6 +49,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     username = serializers.CharField()
 
@@ -65,22 +67,20 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
         return data
 
-class AddContributorSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(write_only=True)
+
+class ContributorSerializer(serializers.ModelSerializer):
+    contributor_username = serializers.CharField(write_only=True)
 
     class Meta:
         model = Contributor
-        fields = ['username', 'role']
-
-    def validate_username(self, value):
-        try:
-            user = User.objects.get(username=value)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("Cet utilisateur n'existe pas.")
-        return user
+        fields = ['id', 'contributor_username', 'project']
+        extra_kwargs = {'project': {'required': False}}
 
     def create(self, validated_data):
         project = self.context['project']
-        user = validated_data['username']
-        contributor, created = Contributor.objects.get_or_create(user=user, project=project)
-        return contributor
+        username = validated_data.pop('contributor_username')
+        try:
+            contributor = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"contributor_username": "Utilisateur non trouvé."})
+        return Contributor.objects.create(project=project, contributor=contributor)

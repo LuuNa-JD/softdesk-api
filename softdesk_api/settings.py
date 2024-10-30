@@ -84,15 +84,26 @@ SIMPLE_JWT = {
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
-        'console': {
-            'level': 'DEBUG',
+        'console_handler': {
             'class': 'logging.StreamHandler',
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': 'DEBUG',
+    'loggers': {
+        '': {  # Remplacez par le nom de votre application
+            'handlers': ['console_handler'],
+            'level': 'DEBUG',
+        },
     },
 }
 
