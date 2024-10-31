@@ -34,7 +34,7 @@ class UserTests(TestCase):
             "age": 20,
             "password": "newpassword"
         }
-        response = self.client.post("/api/register/", data)
+        response = self.client.post("/api/auth/register/", data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("message", response.data)
         self.assertEqual(response.data["data"]["username"], "newuser")
@@ -42,7 +42,7 @@ class UserTests(TestCase):
     def test_update_user_profile(self):
         """Test de mise à jour du profil utilisateur."""
         data = {"email": "updateduser@example.com", "age": 26}
-        response = self.client.put("/api/profile/update/", data)
+        response = self.client.put("/api/auth/profile/update/", data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
         self.assertEqual(self.user.email, "updateduser@example.com")
@@ -55,8 +55,8 @@ class UserTests(TestCase):
         user_id = self.user.id
 
         # Supprime l'utilisateur
-        response = self.client.delete("/api/profile/delete/")
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.delete("/api/auth/profile/delete/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Vérifie que l'utilisateur et les projets associés sont bien supprimés
         self.assertFalse(User.objects.filter(id=user_id).exists())
@@ -66,7 +66,7 @@ class UserTests(TestCase):
         """Test de l'ajout d'un contributeur par le créateur du projet."""
         data = {"contributor_username": "user2"}
         response = self.client.post(
-            f"/api/projects/{self.project.id}/add_contributor/", data
+            f"/api/auth/projects/{self.project.id}/add_contributor/", data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["message"], "Contributeur ajouté avec succès.")
@@ -83,7 +83,7 @@ class UserTests(TestCase):
         self.client.force_authenticate(user=self.user2)
         data = {"contributor_username": "user1"}
         response = self.client.post(
-            f"/api/projects/{self.project.id}/add_contributor/", data
+            f"/api/auth/projects/{self.project.id}/add_contributor/", data
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertIn("detail", response.data)

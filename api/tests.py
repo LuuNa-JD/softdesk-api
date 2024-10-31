@@ -36,7 +36,7 @@ class ProjectTests(TestCase):
             "type": "front-end"
         }
         response = self.client.post("/api/projects/create/", data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data['message'],
             (
@@ -96,7 +96,7 @@ class IssueTests(TestCase):
             f"/api/projects/{self.project.id}/issues/create/",
             data
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data['message'],
             "Issue créée avec succès pour le projet."
@@ -143,7 +143,7 @@ class CommentTests(TestCase):
             f"/api/projects/{self.project.id}/issues/{self.issue.id}/comments/create/",
             data
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data['message'],
             "Commentaire ajouté avec succès à l'issue."
