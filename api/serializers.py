@@ -11,9 +11,15 @@ class ProjectSerializer(serializers.ModelSerializer):
     Serializer pour le modèle Project, incluant le créateur,
     les contributeurs et un format personnalisé pour la date de création.
     """
-    created_time = serializers.SerializerMethodField(help_text="Date de création formatée")
-    creator = serializers.SerializerMethodField(help_text="Username du créateur du projet")
-    contributors = serializers.SerializerMethodField(help_text="Liste des usernames des contributeurs")
+    created_time = serializers.SerializerMethodField(
+        help_text="Date de création formatée"
+    )
+    creator = serializers.SerializerMethodField(
+        help_text="Username du créateur du projet"
+    )
+    contributors = serializers.SerializerMethodField(
+        help_text="Liste des usernames des contributeurs"
+    )
     title = serializers.CharField(
         error_messages={
             'blank': "Le titre du projet ne peut pas être vide.",
@@ -45,11 +51,27 @@ class IssueSerializer(serializers.ModelSerializer):
     Serializer pour le modèle Issue, incluant des champs pour l'assignee et le créateur.
     Permet de spécifier l'assignee par son username.
     """
-    created_time = serializers.SerializerMethodField(help_text="Date de création formatée")
-    project = serializers.ReadOnlyField(source='project.id', help_text="ID du projet associé")
-    assignee = serializers.CharField(write_only=True, required=False, help_text="Username de l'utilisateur assigné")
-    assignee_username = serializers.ReadOnlyField(source='assignee.username', help_text="Username de l'assignee")
-    creator_name = serializers.StringRelatedField(source='creator.username', read_only=True, help_text="Nom d'utilisateur du créateur de l'issue")
+    created_time = serializers.SerializerMethodField(
+        help_text="Date de création formatée"
+    )
+    project = serializers.ReadOnlyField(
+        source='project.id',
+        help_text="ID du projet associé"
+    )
+    assignee = serializers.CharField(
+        write_only=True,
+        required=False,
+        help_text="Username de l'utilisateur assigné"
+    )
+    assignee_username = serializers.ReadOnlyField(
+        source='assignee.username',
+        help_text="Username de l'assignee"
+    )
+    creator_name = serializers.StringRelatedField(
+        source='creator.username',
+        read_only=True,
+        help_text="Nom d'utilisateur du créateur de l'issue"
+    )
     title = serializers.CharField(
         error_messages={
             'blank': "Le titre de l'issue ne peut pas être vide.",
@@ -66,8 +88,10 @@ class IssueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ['id', 'title', 'description', 'project', 'creator_name',
-                  'priority', 'tag', 'status', 'created_time', 'assignee', 'assignee_username']
+        fields = [
+            'id', 'title', 'description', 'project', 'creator_name',
+            'priority', 'tag', 'status', 'created_time', 'assignee', 'assignee_username'
+        ]
 
     def get_creator(self, instance):
         return instance.creator.username
@@ -82,7 +106,9 @@ class IssueSerializer(serializers.ModelSerializer):
             user = User.objects.get(username=value)  # Recherche par username
             return user
         except User.DoesNotExist:
-            raise serializers.ValidationError("Utilisateur avec ce username n'existe pas.")
+            raise serializers.ValidationError(
+                "Utilisateur avec ce username n'existe pas."
+            )
 
     def create(self, validated_data):
         """Crée une issue en assignant le créateur actuel et en validant l'assignee."""
@@ -104,11 +130,21 @@ class IssueSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     """
-    Serializer pour le modèle Comment, incluant le créateur et la date de création formatée.
+    Serializer pour le modèle Comment, incluant le créateur et la date de création
+    formatée.
     """
-    created_time = serializers.SerializerMethodField(help_text="Date de création formatée")
-    issue = serializers.ReadOnlyField(source='issue.id', help_text="ID de l'issue associée")
-    creator_name = serializers.StringRelatedField(help_text="Nom d'utilisateur du créateur du commentaire")
+    created_time = serializers.SerializerMethodField(
+        help_text="Date de création formatée"
+    )
+    issue = serializers.ReadOnlyField(
+        source='issue.id',
+        help_text="ID de l'issue associée"
+    )
+    creator_name = serializers.CharField(
+        source='creator.username',
+        read_only=True,
+        help_text="Nom d'utilisateur du créateur du commentaire"
+    )
     content = serializers.CharField(
         error_messages={
             'blank': "Le contenu du commentaire ne peut pas être vide.",
@@ -125,7 +161,10 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.created_time.strftime('%d %B %Y, %H:%M')
 
     def create(self, validated_data):
-        """Crée un commentaire en assignant automatiquement l'utilisateur actuel comme créateur."""
+        """
+        Crée un commentaire en assignant automatiquement l'utilisateur actuel
+        comme créateur.
+        """
         request = self.context.get('request')
         validated_data['creator'] = request.user
         return super().create(validated_data)

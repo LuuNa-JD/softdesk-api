@@ -49,8 +49,20 @@ class UserProfileUpdateView(generics.UpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
-        response.data['message'] = "Profil mis à jour avec succès."
-        return response
+        return Response({
+            "message": "Profil mis à jour avec succès.",
+            "data": response.data
+        })
+
+
+class UserDetailView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        # Récupère l'utilisateur actuel connecté
+        return self.request.user
 
 
 class UserDeleteView(APIView):

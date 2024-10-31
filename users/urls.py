@@ -2,6 +2,7 @@ from django.urls import path
 from .views import (
     register_user,
     protected_view,
+    UserDetailView,
     UserProfileUpdateView,
     UserDeleteView,
     AddContributorView
@@ -15,6 +16,7 @@ urlpatterns = [
     path('protected/', protected_view, name='protected_view'),
 
     # Gestion du profil utilisateur
+    path('me/', UserDetailView.as_view(), name='user-detail'),
     path('profile/update/', UserProfileUpdateView.as_view(), name='profile-update'),
     path('profile/delete/', UserDeleteView.as_view(), name='profile-delete'),
 

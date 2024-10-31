@@ -133,11 +133,20 @@ class ContributorSerializer(serializers.ModelSerializer):
     Prend le `username` en entrée et lie le contributeur au projet spécifié
     dans le contexte.
     """
-    contributor_username = serializers.CharField(write_only=True)
+    contributor_username = serializers.CharField(
+        write_only=True,
+        help_text="Nom d'utilisateur du contributeur à ajouter."
+    )
+
+    contributor_added = serializers.CharField(
+        source='contributor.username',
+        read_only=True,
+        help_text="Nom d'utilisateur du contributeur ajouté et affiché."
+    )
 
     class Meta:
         model = Contributor
-        fields = ['id', 'contributor_username', 'project']
+        fields = ['id', 'contributor_username', 'contributor_added', 'project']
         extra_kwargs = {'project': {'required': False}}
 
     def create(self, validated_data):

@@ -24,11 +24,11 @@ class ProjectCreateView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
-        response.data['message'] = (
-            "Projet créé avec succès ! Vous êtes ajouté comme propriétaire "
-            "et contributeur."
-        )
-        return response
+        return Response({
+            "message": "Projet créé avec succès ! Vous êtes ajouté comme propriétaire "
+            "et contributeur.",
+            "data": response.data
+        })
 
 
 class ProjectListView(generics.ListAPIView):
@@ -55,7 +55,10 @@ class ProjectListView(generics.ListAPIView):
                     "en tant que contributeur."
                 )
             )
-        return response
+        return Response({
+            "message": "Liste des projets récupérée avec succès.",
+            "data": response.data
+        })
 
 
 class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -75,13 +78,17 @@ class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
-        response.data['message'] = "Détails du projet récupérés avec succès."
-        return response
+        return Response({
+            "message": "Détails du projet récupérés avec succès.",
+            "data": response.data
+        })
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
-        response.data['message'] = "Projet mis à jour avec succès."
-        return response
+        return Response({
+            "message": "Projet mis à jour avec succès.",
+            "data": response.data
+        })
 
     def destroy(self, request, *args, **kwargs):
         super().destroy(request, *args, **kwargs)
@@ -116,8 +123,10 @@ class IssueCreateView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
-        response.data['message'] = "Issue créée avec succès pour le projet."
-        return response
+        return Response({
+            "message": "Issue créée avec succès pour le projet.",
+            "data": response.data
+        })
 
 
 class IssueListView(generics.ListAPIView):
@@ -134,8 +143,10 @@ class IssueListView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
-        response.data['message'] = "Liste des issues récupérée avec succès."
-        return response
+        return Response({
+            "message": "Liste des issues récupérée avec succès.",
+            "data": response.data
+        })
 
 
 class IssueDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -154,13 +165,17 @@ class IssueDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
-        response.data['message'] = "Détails de l'issue récupérés avec succès."
-        return response
+        return Response({
+            "message": "Détails de l'issue récupérés avec succès.",
+            "data": response.data
+        })
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
-        response.data['message'] = "Issue mise à jour avec succès."
-        return response
+        return Response({
+            "message": "Issue mise à jour avec succès.",
+            "data": response.data
+        })
 
     def destroy(self, request, *args, **kwargs):
         super().destroy(request, *args, **kwargs)
@@ -200,8 +215,10 @@ class CommentCreateView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
-        response.data['message'] = "Commentaire ajouté avec succès à l'issue."
-        return response
+        return Response({
+            "message": "Commentaire ajouté avec succès à l'issue.",
+            "data": response.data
+        })
 
 
 class CommentListView(generics.ListAPIView):
@@ -217,8 +234,10 @@ class CommentListView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
-        response.data['message'] = "Liste des commentaires récupérée avec succès."
-        return response
+        return Response({
+            "message": "Liste des commentaires récupérée avec succès.",
+            "data": response.data
+        })
 
 
 class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -237,17 +256,20 @@ class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
-        response.data['message'] = "Détails du commentaire récupérés avec succès."
-        return response
+        return Response({
+            "message": "Détails du commentaire récupérés avec succès.",
+            "data": response.data
+        })
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
-        response.data['message'] = "Commentaire mis à jour avec succès."
-        return response
+        return Response({
+            "message": "Commentaire mis à jour avec succès.",
+            "data": response.data
+        })
 
     def destroy(self, request, *args, **kwargs):
         super().destroy(request, *args, **kwargs)
-        return Response(
-            {"message": "Le commentaire a été supprimée avec succès."},
-            status=status.HTTP_200_OK
-        )
+        return Response({
+            "message": "Le commentaire a été supprimée avec succès."
+        }, status=status.HTTP_200_OK)

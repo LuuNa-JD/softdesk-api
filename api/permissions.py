@@ -26,7 +26,9 @@ class IsContributor(permissions.BasePermission):
             return False  # Retourne False si l'objet n'est pas associé à un projet
 
         # Vérifie si l'utilisateur est un contributeur du projet
-        is_contributor = Contributor.objects.filter(project=project, contributor=request.user).exists()
+        is_contributor = Contributor.objects.filter(
+            project=project, contributor=request.user
+        ).exists()
         # Vérifie si l'utilisateur est le créateur du projet
         is_creator = project.creator == request.user
 
