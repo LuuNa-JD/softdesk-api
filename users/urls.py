@@ -1,10 +1,27 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import UserViewSet
-
-router = DefaultRouter()
-router.register(r'users', UserViewSet)
+from django.urls import path
+from .views import (
+    register_user,
+    protected_view,
+    UserProfileUpdateView,
+    UserDeleteView,
+    AddContributorView
+)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # Enregistrement d'un utilisateur
+    path('register/', register_user, name='register_user'),
+
+    # Vue protégée
+    path('protected/', protected_view, name='protected_view'),
+
+    # Gestion du profil utilisateur
+    path('profile/update/', UserProfileUpdateView.as_view(), name='profile-update'),
+    path('profile/delete/', UserDeleteView.as_view(), name='profile-delete'),
+
+    # Gestion des contributeurs d'un projet
+    path(
+        'projects/<int:project_id>/add_contributor/',
+        AddContributorView.as_view(),
+        name='add-contributor'
+    ),
 ]

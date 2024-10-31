@@ -18,21 +18,20 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from users.views import CustomTokenObtainPairView
-from users.views import protected_view
-from users.views import register_user, UserProfileUpdateView, UserDeleteView
-from users.views import AddContributorView
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Authentification et Tokens
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    path('api/register/', register_user, name='register_user'),
-    path('api/protected/', protected_view, name='protected_view'),
-    path('api/profile/update/', UserProfileUpdateView.as_view(), name='profile-update'),
-    path('api/profile/delete/', UserDeleteView.as_view(), name='profile-delete'),
-    path('api/projects/<int:project_id>/add_contributor/', AddContributorView.as_view(), name='add-contributor'),
-    path('api/', include('users.urls')),
-    path('api/', include('api.urls')),
+
+
+    # Module des utilisateurs (inscription, profil, etc.)
+    path('api/auth/', include('users.urls')),
+
+    # Module des projets (API principale)
+    path('api/projects/', include('api.urls')),
 ]
