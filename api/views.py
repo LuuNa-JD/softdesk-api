@@ -40,11 +40,13 @@ class ProjectListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Filtre les projets où l'utilisateur est soit créateur soit contributeur
         return Project.objects.filter(
             Q(creator=self.request.user)
             | Q(contributor_set__contributor=self.request.user)
-        ).distinct().order_by('-created_time')
+        ).select_related('creator')\
+         .prefetch_related('contributors')\
+         .distinct()\
+         .order_by('-created_time')
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
@@ -66,7 +68,8 @@ class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
     Vue pour récupérer, mettre à jour ou supprimer un projet.
     La suppression et la mise à jour sont réservées aux créateurs du projet.
     """
-    queryset = Project.objects.all().prefetch_related('contributors')
+    queryset = Project.objects.all().select_related('creator')\
+        .prefetch_related('contributors')
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated, IsContributor]
 
@@ -133,13 +136,17 @@ class IssueListView(generics.ListAPIView):
     """
     Vue pour lister toutes les issues d'un projet spécifique.
     """
+    queryset = Issue.objects.select_related('creator', 'project')
     serializer_class = IssueSerializer
     permission_classes = [permissions.IsAuthenticated, IsContributor]
 
     def get_queryset(self):
         # Filtre les issues par projet et les trie par date de création
         project = Project.objects.get(pk=self.kwargs['project_id'])
-        return Issue.objects.filter(project=project).order_by('-created_time')
+        return Issue.objects.filter(project=project)\
+            .select_related('creator')\
+            .prefetch_related('comments')\
+            .order_by('-created_time')
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
@@ -154,7 +161,7 @@ class IssueDetailView(generics.RetrieveUpdateDestroyAPIView):
     Vue pour récupérer, mettre à jour ou supprimer une issue spécifique.
     Seul le créateur peut modifier ou supprimer.
     """
-    queryset = Issue.objects.all()
+    queryset = Issue.objects.select_related('creator', 'project')
     serializer_class = IssueSerializer
     permission_classes = [permissions.IsAuthenticated, IsContributor]
 
@@ -230,7 +237,9 @@ class CommentListView(generics.ListAPIView):
 
     def get_queryset(self):
         issue = Issue.objects.get(pk=self.kwargs['issue_id'])
-        return Comment.objects.filter(issue=issue).order_by('-created_time')
+        return Comment.objects.filter(issue=issue)\
+            .select_related('creator')\
+            .order_by('-created_time')
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
@@ -245,7 +254,7 @@ class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
     Vue pour récupérer, mettre à jour ou supprimer un commentaire spécifique.
     Seul le créateur peut modifier ou supprimer un commentaire.
     """
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.select_related('creator', 'issue')
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated, IsContributor]
 
