@@ -122,6 +122,20 @@ class IssueCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         project = self.get_project()
+        assignee_username = serializer.validated_data.get('assignee', None)
+
+        # Vérification de l'assignee
+        if assignee_username:
+            is_contributor = Contributor.objects.filter(
+                project=project,
+                contributor__username=assignee_username
+            ).exists()
+            if not is_contributor:
+                raise PermissionDenied(
+                    "L'utilisateur assigné doit être contributeur du projet."
+                )
+
+        # Sauvegarde de l'issue avec le projet et le créateur
         serializer.save(project=project, creator=self.request.user)
 
     def create(self, request, *args, **kwargs):
@@ -178,6 +192,24 @@ class IssueDetailView(generics.RetrieveUpdateDestroyAPIView):
         })
 
     def update(self, request, *args, **kwargs):
+        issue = self.get_object()
+        assignee_username = request.data.get('assignee', None)
+
+        if assignee_username:
+            is_contributor = Contributor.objects.filter(
+                project=issue.project,
+                contributor__username=assignee_username
+            ).exists()
+            if not is_contributor:
+                return Response(
+                    {
+                        "message": (
+                            "L'utilisateur assigné doit être contributeur du projet."
+                        )
+                    },
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
         response = super().update(request, *args, **kwargs)
         return Response({
             "message": "Issue mise à jour avec succès.",
