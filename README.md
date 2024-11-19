@@ -123,7 +123,7 @@ poetry run flake8
 - JWT : Authentification.
 - Postman : Documentation des API et tests.
 - Poetry : Gestion des dépendances.
-- SQLite/PostgreSQL : Base de données.
+- SQLite : Base de données.
 
 ## Documentation API via Postman
 
